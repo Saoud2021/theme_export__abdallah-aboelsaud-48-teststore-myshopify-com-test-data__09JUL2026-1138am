@@ -1,3 +1,35 @@
+<div class="gift-guide">
+  <header class="gift-guide__header">
+    <h1 class="gift-guide__heading">TISSO VISION</h1>
+    <h2 class="gift-guide__title">Find the ideal gift for your loved ones.</h2>
+    <button class="gift-guide__button">Shop Now</button>
+  </header>
+  <div class="gift-guide__Hero">
+    <div class="gift-guide__Hero-image-top">
+      <img src="{{ 'gift-guide-hero.svg' | asset_url }}" alt="Gift Guide Hero Image" width="800" height="400">
+    </div>
+    <div class="gift-guide__Hero-image-bottom">
+      <img src="{{ 'gift-guide-hero.svg' | asset_url }}" alt="Gift Guide Hero Bottom Image" width="800" height="400">
+    </div>
+    <div class="gift-guide__Hero-text">
+      <h3 class="gift-guide__Hero-heading">Gift Guide</h3>
+      <p class="gift-guide__Hero-description">
+        Discover Joy: Your Ultimate Holiday Gift Destination. Explore our curated selection and find the perfect gifts
+        to delight your loved ones this holiday season.
+      </p>
+      <button class="gift-guide__Hero-button">Shop Now</button>
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .gift-guide__header {
+    text-align: center;
+    margin-bottom: 20px;
+    background-color: #960707;
+  }
+{% endstylesheet %}
+
 {% schema %}
 {
   "name": "Gift Guide Grid",
