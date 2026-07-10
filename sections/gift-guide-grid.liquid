@@ -24,46 +24,127 @@
     <p class="gift-guide__footer-text">SUSTAINABLE, ETHICALLY MADE CLOTHES IN SIZES XXS TO 6XL</p>
   </div>
 </div>
+
 <div class="gift-guide__grid">
-  
- {% for block in section.blocks %}
+  {% for block in section.blocks %}
     <div class="gift-guide__grid-item" {{ block.shopify_attributes }}>
       {% if block.type == 'product_tile' %}
         {% assign product = block.settings.selected_product %}
-        <a href="{{ product.url | default: '#' }}" class="gift-guide__product-link">
-          {% if product and product.featured_image %}
-            <img
-              src="{{ product.featured_image | image_url: width: 300 }}"
-              alt="{{ product.featured_image.alt | default: product.title }}"
-              class="gift-guide__product-image"
-              width="300"
-              height="300"
-              loading="lazy"
+
+        {% if product and product.featured_image %}
+          <div class="gift-guide__product-card" data-product-card>
+            <a href="{{ product.url }}" class="gift-guide__product-link">
+              <img
+                src="{{ product.featured_image | image_url: width: 300 }}"
+                alt="{{ product.featured_image.alt | default: product.title }}"
+                class="gift-guide__product-image"
+                width="300"
+                height="300"
+                loading="lazy"
+              >
+              <h3 class="gift-guide__product-title">{{ product.title }}</h3>
+              <p class="gift-guide__product-price">{{ product.price | money }}</p>
+            </a>
+
+            <button
+              type="button"
+              class="gift-guide__quickview-trigger"
+              aria-label="Quick view {{ product.title | escape }}"
+              data-quickview-trigger
+              data-product-json="quickview-data-{{ product.id }}"
             >
-            <h3 class="gift-guide__product-title">{{ product.title }}</h3>
-            <p class="gift-guide__product-price">{{ product.price | money }}</p>
-          {% else %}
+              +
+            </button>
+
+            {%- comment -%} Data payload for this product, read by JS when the trigger is clicked {%- endcomment -%}
+            <script type="application/json" id="quickview-data-{{ product.id }}">
+              {
+                "id": {{ product.id | json }},
+                "title": {{ product.title | json }},
+                "price": {{ product.price | money | json }},
+                "description": {{ product.description | strip_html | truncatewords: 32 | json }},
+                "image": {{ product.featured_image | image_url: width: 600 | json }},
+                "url": {{ product.url | json }},
+                "options": [
+                  {% for option in product.options_with_values %}
+                    {
+                      "name": {{ option.name | json }},
+                      "values": {{ option.values | json }}
+                    }{% unless forloop.last %},{% endunless %}
+                  {% endfor %}
+                ],
+                "variants": [
+                  {% for variant in product.variants %}
+                    {
+                      "id": {{ variant.id | json }},
+                      "available": {{ variant.available | json }},
+                      "price": {{ variant.price | money | json }},
+                      "option1": {{ variant.option1 | json }},
+                      "option2": {{ variant.option2 | json }},
+                      "option3": {{ variant.option3 | json }},
+                      "image": {{ variant.featured_image.src | image_url: width: 600 | json }}
+                    }{% unless forloop.last %},{% endunless %}
+                  {% endfor %}
+                ]
+              }
+            </script>
+          </div>
+        {% else %}
+          <div class="gift-guide__product-card gift-guide__product-card--empty">
             <div class="gift-guide__product-placeholder"></div>
             <h3 class="gift-guide__product-title">{{ product.title | default: 'Product Title' }}</h3>
             <p class="gift-guide__product-price">{{ product.price | money | default: '$0.00' }}</p>
-          {% endif %}
-        </a>
+          </div>
+        {% endif %}
       {% endif %}
     </div>
   {% endfor %}
 </div>
- 
+
+{%- comment -%} Quick view modal shell — one modal, populated dynamically per product {%- endcomment -%}
+<div class="gift-guide__quickview-overlay" data-quickview-overlay hidden>
+  <div class="gift-guide__quickview-modal" role="dialog" aria-modal="true" aria-labelledby="quickview-title">
+    <button type="button" class="gift-guide__quickview-close" data-quickview-close aria-label="Close">&times;</button>
+
+    <div class="gift-guide__quickview-body">
+      <div class="gift-guide__quickview-media">
+        <img src="" alt="" width="500" height="500" data-quickview-image>
+      </div>
+
+      <div class="gift-guide__quickview-content">
+        <h3 id="quickview-title" class="gift-guide__quickview-title" data-quickview-title></h3>
+        <p class="gift-guide__quickview-price" data-quickview-price></p>
+        <p class="gift-guide__quickview-description" data-quickview-description></p>
+
+        <div class="gift-guide__quickview-option" data-quickview-option-1 hidden>
+          <p class="gift-guide__quickview-option-label" data-quickview-option-1-label></p>
+          <div class="gift-guide__quickview-swatches" data-quickview-option-1-values></div>
+        </div>
+
+        <div class="gift-guide__quickview-option" data-quickview-option-2 hidden>
+          <p class="gift-guide__quickview-option-label" data-quickview-option-2-label></p>
+          <div class="gift-guide__quickview-select-wrap">
+            <select class="gift-guide__quickview-select" data-quickview-option-2-select></select>
+            <span class="gift-guide__quickview-select-arrow">&#9662;</span>
+          </div>
+        </div>
+
+        <button type="button" class="gift-guide__quickview-add" data-quickview-add>
+          <span>Add to cart</span>
+          <span class="gift-guide__quickview-add-arrow">&rarr;</span>
+        </button>
+        <p class="gift-guide__quickview-status" data-quickview-status aria-live="polite"></p>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% stylesheet %}
   * {
     box-sizing: border-box;
     padding: 0;
+    margin: 0;
   }
-  .gift-guide-grid {
-  padding-top: 0 !important;
-  margin-top: 0 !important;
-}
-
   .gift-guide__header {
     display: flex;
     justify-content: space-between;
@@ -112,45 +193,420 @@
     color: #666;
   }
   .gift-guide__grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  padding: 40px 20px;
-}
-
-.gift-guide__product-link {
-  display: block;
-  text-decoration: none;
-  color: inherit;
-}
-
-.gift-guide__product-image {
-  width: 100%;
-  height: auto;
-  display: block;
-  object-fit: cover;
-  margin-bottom: 12px;
-}
-.gift-guide__placeholder-svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-.gift-guide__product-placeholder {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  border: 2px dashed #ccc;
-  border-radius: 12px;
-  margin-bottom: 12px;
-  background-color: #fafafa;
-}
-
-@media (max-width: 749px) {
-  .gift-guide__grid {
-    grid-template-columns: repeat(2, 1fr);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    padding: 40px 20px;
   }
-}
+
+  .gift-guide__product-card {
+    position: relative;
+  }
+
+  .gift-guide__product-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .gift-guide__product-image {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+    margin-bottom: 12px;
+  }
+
+  .gift-guide__product-title {
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+
+  .gift-guide__product-price {
+    font-size: 14px;
+    color: #333;
+  }
+
+  .gift-guide__product-placeholder {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border: 2px dashed #ccc;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    background-color: #fafafa;
+  }
+
+  .gift-guide__quickview-trigger {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: #fff;
+    color: #111;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .gift-guide__quickview-trigger:hover {
+    background: #111;
+    color: #fff;
+  }
+
+  /* Quick view modal */
+  .gift-guide__quickview-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    padding: 20px;
+  }
+
+  .gift-guide__quickview-overlay[hidden] {
+    display: none;
+  }
+
+  .gift-guide__quickview-modal {
+    background: #fff;
+    width: 100%;
+    max-width: 680px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    padding: 40px;
+  }
+
+  .gift-guide__quickview-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    color: #333;
+    width: 32px;
+    height: 32px;
+  }
+
+  .gift-guide__quickview-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+
+  .gift-guide__quickview-media img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+  }
+
+  .gift-guide__quickview-title {
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+
+  .gift-guide__quickview-price {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+
+  .gift-guide__quickview-description {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.5;
+    margin-bottom: 24px;
+  }
+
+  .gift-guide__quickview-option {
+    margin-bottom: 24px;
+  }
+
+  .gift-guide__quickview-option-label {
+    font-size: 13px;
+    color: #333;
+    margin-bottom: 8px;
+  }
+
+  .gift-guide__quickview-swatches {
+    display: flex;
+    border: 1px solid #ccc;
+  }
+
+  .gift-guide__quickview-swatch {
+    flex: 1;
+    padding: 12px 16px;
+    background: #fff;
+    border: none;
+    border-left: 1px solid #ccc;
+    font-size: 14px;
+    cursor: pointer;
+    text-align: center;
+    box-shadow: inset 4px 0 0 transparent;
+  }
+
+  .gift-guide__quickview-swatch:first-child {
+    border-left: none;
+  }
+
+  .gift-guide__quickview-swatch[aria-pressed="true"] {
+    box-shadow: inset 4px 0 0 #b3283d;
+    font-weight: 600;
+  }
+
+  .gift-guide__quickview-select-wrap {
+    position: relative;
+    border: 1px solid #ccc;
+  }
+
+  .gift-guide__quickview-select {
+    width: 100%;
+    appearance: none;
+    background: none;
+    border: none;
+    padding: 12px 40px 12px 16px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .gift-guide__quickview-select-arrow {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    font-size: 12px;
+  }
+
+  .gift-guide__quickview-add {
+    width: 100%;
+    background: #111;
+    color: #fff;
+    border: none;
+    padding: 16px;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .gift-guide__quickview-add:disabled {
+    background: #999;
+    cursor: not-allowed;
+  }
+
+  .gift-guide__quickview-status {
+    font-size: 12px;
+    color: #555;
+    margin-top: 10px;
+    text-align: center;
+  }
+
+  @media (max-width: 749px) {
+    .gift-guide__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .gift-guide__quickview-body {
+      grid-template-columns: 1fr;
+    }
+
+    .gift-guide__quickview-modal {
+      padding: 24px;
+    }
+  }
 {% endstylesheet %}
+
+<script>
+  (function () {
+    var overlay = document.querySelector('[data-quickview-overlay]');
+    if (!overlay) return;
+
+    var closeBtn = overlay.querySelector('[data-quickview-close]');
+    var imageEl = overlay.querySelector('[data-quickview-image]');
+    var titleEl = overlay.querySelector('[data-quickview-title]');
+    var priceEl = overlay.querySelector('[data-quickview-price]');
+    var descEl = overlay.querySelector('[data-quickview-description]');
+    var opt1Wrap = overlay.querySelector('[data-quickview-option-1]');
+    var opt1Label = overlay.querySelector('[data-quickview-option-1-label]');
+    var opt1Values = overlay.querySelector('[data-quickview-option-1-values]');
+    var opt2Wrap = overlay.querySelector('[data-quickview-option-2]');
+    var opt2Label = overlay.querySelector('[data-quickview-option-2-label]');
+    var opt2Select = overlay.querySelector('[data-quickview-option-2-select]');
+    var addBtn = overlay.querySelector('[data-quickview-add]');
+    var statusEl = overlay.querySelector('[data-quickview-status]');
+
+    var currentProduct = null;
+    var selectedOption1 = null;
+    var selectedOption2 = null;
+
+    function findVariant() {
+      if (!currentProduct) return null;
+      return currentProduct.variants.find(function (v) {
+        var matchesOpt1 = !selectedOption1 || v.option1 === selectedOption1;
+        var matchesOpt2 = !selectedOption2 || v.option2 === selectedOption2;
+        return matchesOpt1 && matchesOpt2;
+      });
+    }
+
+    function updateAddState() {
+      var variant = findVariant();
+      if (variant) {
+        addBtn.disabled = !variant.available;
+        priceEl.textContent = variant.price;
+        if (variant.image) imageEl.src = variant.image;
+      } else {
+        addBtn.disabled = true;
+      }
+      statusEl.textContent = '';
+    }
+
+    function renderOptions() {
+      opt1Wrap.hidden = true;
+      opt2Wrap.hidden = true;
+      opt1Values.innerHTML = '';
+      opt2Select.innerHTML = '';
+
+      var options = currentProduct.options || [];
+
+      if (options[0]) {
+        opt1Wrap.hidden = false;
+        opt1Label.textContent = options[0].name;
+        selectedOption1 = options[0].values[0];
+
+        options[0].values.forEach(function (value) {
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'gift-guide__quickview-swatch';
+          btn.textContent = value;
+          btn.setAttribute('aria-pressed', value === selectedOption1 ? 'true' : 'false');
+          btn.addEventListener('click', function () {
+            selectedOption1 = value;
+            opt1Values.querySelectorAll('.gift-guide__quickview-swatch').forEach(function (b) {
+              b.setAttribute('aria-pressed', b.textContent === value ? 'true' : 'false');
+            });
+            updateAddState();
+          });
+          opt1Values.appendChild(btn);
+        });
+      }
+
+      if (options[1]) {
+        opt2Wrap.hidden = false;
+        opt2Label.textContent = options[1].name;
+        selectedOption2 = options[1].values[0];
+
+        var placeholder = document.createElement('option');
+        placeholder.textContent = 'Choose your ' + options[1].name.toLowerCase();
+        placeholder.disabled = true;
+        opt2Select.appendChild(placeholder);
+
+        options[1].values.forEach(function (value, i) {
+          var option = document.createElement('option');
+          option.value = value;
+          option.textContent = value;
+          opt2Select.appendChild(option);
+        });
+
+        opt2Select.addEventListener('change', function () {
+          selectedOption2 = opt2Select.value;
+          updateAddState();
+        });
+      }
+
+      updateAddState();
+    }
+
+    function openModal(product) {
+      currentProduct = product;
+      imageEl.src = product.image;
+      imageEl.alt = product.title;
+      titleEl.textContent = product.title;
+      priceEl.textContent = product.price;
+      descEl.textContent = product.description;
+      renderOptions();
+
+      overlay.hidden = false;
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      overlay.hidden = true;
+      document.body.style.overflow = '';
+      currentProduct = null;
+    }
+
+   document.addEventListener('click', function (e) {
+  var trigger = e.target.closest('[data-quickview-trigger]');
+  if (!trigger) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  var dataId = trigger.getAttribute('data-product-json');
+  var dataEl = document.getElementById(dataId);
+  if (!dataEl) return;
+
+  try {
+    var product = JSON.parse(dataEl.textContent);
+    openModal(product);
+  } catch (err) {
+    console.error('Quick view: could not parse product data', err);
+  }
+});
+
+    closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) closeModal();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !overlay.hidden) closeModal();
+    });
+
+    addBtn.addEventListener('click', function () {
+      var variant = findVariant();
+      if (!variant) return;
+
+      addBtn.disabled = true;
+      statusEl.textContent = 'Adding...';
+
+      fetch(window.Shopify && window.Shopify.routes ? window.Shopify.routes.root + 'cart/add.js' : '/cart/add.js', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: variant.id, quantity: 1 })
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error('Add to cart failed');
+          return res.json();
+        })
+        .then(function () {
+          statusEl.textContent = 'Added to cart.';
+          addBtn.disabled = false;
+          document.dispatchEvent(new CustomEvent('cart:refresh'));
+        })
+        .catch(function () {
+          statusEl.textContent = 'Something went wrong. Please try again.';
+          addBtn.disabled = false;
+        });
+    });
+  })();
+</script>
 
 {% schema %}
 {
