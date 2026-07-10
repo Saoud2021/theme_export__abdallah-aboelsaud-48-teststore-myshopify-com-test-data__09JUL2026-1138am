@@ -1,10 +1,66 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
-    "sections": {
-        "main": {
-            "type": "gift-guide-grid"
+  "sections": {
+    "main": {
+      "type": "gift-guide-grid",
+      "blocks": {
+        "product_tile_9fWdiW": {
+          "type": "product_tile",
+          "settings": {
+            "selected_product": "blue-silk-tuxedo"
+          }
+        },
+        "product_tile_QTkFPT": {
+          "type": "product_tile",
+          "settings": {
+            "selected_product": "chequered-red-shirt"
+          }
+        },
+        "product_tile_PVmiUF": {
+          "type": "product_tile",
+          "settings": {
+            "selected_product": "classic-varsity-top"
+          }
+        },
+        "product_tile_twqCYW": {
+          "type": "product_tile",
+          "settings": {
+            "selected_product": "dark-denim-top"
+          }
+        },
+        "product_tile_JygRcq": {
+          "type": "product_tile",
+          "settings": {
+            "selected_product": "floral-white-top"
+          }
+        },
+        "product_tile_A6bXBY": {
+          "type": "product_tile",
+          "settings": {
+            "selected_product": "black-leather-bag"
+          }
         }
-    },
-    "order": [
-        "main"
-    ]
+      },
+      "block_order": [
+        "product_tile_9fWdiW",
+        "product_tile_QTkFPT",
+        "product_tile_PVmiUF",
+        "product_tile_twqCYW",
+        "product_tile_JygRcq",
+        "product_tile_A6bXBY"
+      ],
+      "settings": {}
+    }
+  },
+  "order": [
+    "main"
+  ]
 }
