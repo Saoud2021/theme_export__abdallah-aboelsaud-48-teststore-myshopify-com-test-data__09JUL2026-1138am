@@ -6,10 +6,7 @@
   </header>
   <div class="gift-guide__Hero">
     <div class="gift-guide__Hero-image-top">
-      <img src="{{ 'gift-guide-hero.svg' | asset_url }}" alt="Gift Guide Hero Image" width="800" height="400">
-    </div>
-    <div class="gift-guide__Hero-image-bottom">
-      <img src="{{ 'gift-guide-hero.svg' | asset_url }}" alt="Gift Guide Hero Bottom Image" width="800" height="400">
+      <img src="{{ 'gift-guide-hero.svg' | asset_url }}" alt="Gift Guide Hero Image" width="1200" height="400">
     </div>
     <div class="gift-guide__Hero-text">
       <h3 class="gift-guide__Hero-heading">Gift Guide</h3>
@@ -19,15 +16,135 @@
       </p>
       <button class="gift-guide__Hero-button">Shop Now</button>
     </div>
+    <div class="gift-guide__Hero-image-bottom">
+      <img src="{{ 'gift-guide-hero.svg' | asset_url }}" alt="Gift Guide Hero Bottom Image" width="800" height="400">
+    </div>
+  </div>
+  <div class="gift-guide__footer">
+    <p class="gift-guide__footer-text">SUSTAINABLE, ETHICALLY MADE CLOTHES IN SIZES XXS TO 6XL</p>
   </div>
 </div>
+<div class="gift-guide__grid">
+  
+ {% for block in section.blocks %}
+    <div class="gift-guide__grid-item" {{ block.shopify_attributes }}>
+      {% if block.type == 'product_tile' %}
+        {% assign product = block.settings.selected_product %}
+        <a href="{{ product.url | default: '#' }}" class="gift-guide__product-link">
+          {% if product and product.featured_image %}
+            <img
+              src="{{ product.featured_image | image_url: width: 300 }}"
+              alt="{{ product.featured_image.alt | default: product.title }}"
+              class="gift-guide__product-image"
+              width="300"
+              height="300"
+              loading="lazy"
+            >
+            <h3 class="gift-guide__product-title">{{ product.title }}</h3>
+            <p class="gift-guide__product-price">{{ product.price | money }}</p>
+          {% else %}
+            <div class="gift-guide__product-placeholder"></div>
+            <h3 class="gift-guide__product-title">{{ product.title | default: 'Product Title' }}</h3>
+            <p class="gift-guide__product-price">{{ product.price | money | default: '$0.00' }}</p>
+          {% endif %}
+        </a>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
+ 
 
 {% stylesheet %}
-  .gift-guide__header {
-    text-align: center;
-    margin-bottom: 20px;
-    background-color: #960707;
+  * {
+    box-sizing: border-box;
+    padding: 0;
   }
+  .gift-guide__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    margin-bottom: 20px;
+    background-color: #f5f5f5;
+    height: 70px;
+  }
+  .gift-guide__Hero {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+  }
+
+  .gift-guide__Hero-image-top {
+    grid-column: 1 / -1;
+  }
+
+  .gift-guide__Hero-image-top img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .gift-guide__Hero-image-bottom {
+    overflow: hidden;
+    height: auto;
+  }
+
+  .gift-guide__Hero-image-bottom img {
+    width: 150%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .gift-guide__footer {
+    background-color: #f5f5f5;
+  }
+
+  .gift-guide__footer-text {
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+  }
+  .gift-guide__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding: 40px 20px;
+}
+
+.gift-guide__product-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.gift-guide__product-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  margin-bottom: 12px;
+}
+.gift-guide__placeholder-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.gift-guide__product-placeholder {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border: 2px dashed #ccc;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  background-color: #fafafa;
+}
+
+@media (max-width: 749px) {
+  .gift-guide__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
 {% endstylesheet %}
 
 {% schema %}
@@ -50,7 +167,15 @@
   ],
   "presets": [
     {
-      "name": "Gift Guide Grid"
+      "name": "Gift Guide Grid",
+      "blocks": [
+        { "type": "product_tile" },
+        { "type": "product_tile" },
+        { "type": "product_tile" },
+        { "type": "product_tile" },
+        { "type": "product_tile" },
+        { "type": "product_tile" }
+      ]
     }
   ]
 }
